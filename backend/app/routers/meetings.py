@@ -212,6 +212,26 @@ async def get_chat_messages(
             detail=f"Failed to get messages: {str(e)}",
         )
 
+@router.get("/participants/invited")
+async def get_invited_participants(
+    current_user: dict = Depends(get_current_active_user),
+):
+    """
+    Get all meeting participants where the current user is invited.
+    """
+    try:
+        participants = await meeting_service.get_invited_participants(
+            UUID(current_user["id"])
+        )
+        return participants
+    except AppException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get invited participants: {str(e)}",
+        )
+
 class ParticipantStatusUpdate(BaseModel):
     status: str  # "accepted" or "declined"
 

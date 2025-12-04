@@ -313,45 +313,29 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
       const meeting = response.data;
 
-      // Wait a moment for the participant record to be created, then query for it
-      setTimeout(async () => {
-        try {
-          // Query for the participant record
-          const { data: participantData, error } = await supabase
-            .from('meeting_participants')
-            .select('id')
-            .eq('meeting_id', meeting.id)
-            .eq('user_id', participant.id)
-            .single();
+      // Find the participant record from the response
+      // The backend now returns participants array with IDs
+      const participantRecord = meeting.participants?.find(
+        (p: any) => p.user_id === participant.id
+      );
 
-          if (error || !participantData) {
-            console.error("Failed to find participant record:", error);
-            // Still show the overlay, it will handle the case by matching user_id
-            setOutgoingCall({
-              meetingId: meeting.id,
-              participantId: participant.id, // Fallback to user_id
-              participantName: participant.user_name,
-              participantAvatar: undefined,
-            });
-          } else {
-            setOutgoingCall({
-              meetingId: meeting.id,
-              participantId: participantData.id,
-              participantName: participant.user_name,
-              participantAvatar: undefined,
-            });
-          }
-        } catch (err) {
-          console.error("Error fetching participant:", err);
-          // Show overlay with user_id as fallback
-          setOutgoingCall({
-            meetingId: meeting.id,
-            participantId: participant.id,
-            participantName: participant.user_name,
-            participantAvatar: undefined,
-          });
-        }
-      }, 300);
+      if (participantRecord) {
+        setOutgoingCall({
+          meetingId: meeting.id,
+          participantId: participantRecord.id,
+          participantName: participant.user_name,
+          participantAvatar: undefined,
+        });
+      } else {
+        // Fallback: use user_id (OutgoingCallOverlay will handle finding the actual participant ID)
+        console.warn("Participant record not found in response, using user_id as fallback");
+        setOutgoingCall({
+          meetingId: meeting.id,
+          participantId: participant.id,
+          participantName: participant.user_name,
+          participantAvatar: undefined,
+        });
+      }
     } catch (error) {
       console.error("Failed to start video call:", error);
       alert("Failed to start video call");

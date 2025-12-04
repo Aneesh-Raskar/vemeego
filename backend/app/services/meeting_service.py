@@ -75,7 +75,8 @@ class MeetingService:
         }
         self.admin_client.table("meeting_participants").insert(host_participant).execute()
 
-        # Add other participants
+        # Add other participants and collect their IDs
+        created_participants = []
         if participants:
             participants_data = []
             for p in participants:
@@ -93,7 +94,15 @@ class MeetingService:
                 participants_data.append(p_data)
             
             if participants_data:
-                self.admin_client.table("meeting_participants").insert(participants_data).execute()
+                participants_response = (
+                    self.admin_client.table("meeting_participants")
+                    .insert(participants_data)
+                    .execute()
+                )
+                created_participants = participants_response.data or []
+
+        # Add participant IDs to meeting response for frontend
+        meeting["participants"] = created_participants
 
         return meeting
 
@@ -372,3 +381,18 @@ class MeetingService:
             raise BadRequestError("Failed to update participant status")
         
         return response.data[0]
+
+    async def get_invited_participants(self, user_id: UUID) -> List[Dict[str, Any]]:
+        """
+        Get all meeting participants where the user is invited (status = 'invited').
+        """
+        response = (
+            self.admin_client.table("meeting_participants")
+            .select("*")
+            .eq("user_id", str(user_id))
+            .eq("status", "invited")
+            .order("created_at", desc=False)
+            .execute()
+        )
+        
+        return response.data or []

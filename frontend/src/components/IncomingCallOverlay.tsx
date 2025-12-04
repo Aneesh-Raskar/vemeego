@@ -37,21 +37,15 @@ const IncomingCallOverlay: React.FC<IncomingCallProps> = () => {
     // Check for existing invited participants on mount
     const checkExistingInvites = async () => {
       try {
-        const { data: participants, error } = await supabase
-          .from("meeting_participants")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("status", "invited")
-          .order("created_at", { ascending: false })
-          .limit(1);
+        // Use backend API instead of direct Supabase query to avoid RLS issues
+        const response = await api.get(
+          API_ENDPOINTS.MEETINGS.INVITED_PARTICIPANTS
+        );
+        const participants = response.data || [];
 
-        if (error) {
-          console.error("Error checking existing invites:", error);
-          return;
-        }
-
-        if (participants && participants.length > 0) {
-          const participant = participants[0];
+        if (participants.length > 0) {
+          // Get the most recent invite
+          const participant = participants[participants.length - 1];
           await handleIncomingCall(participant);
         }
       } catch (err) {
@@ -107,7 +101,7 @@ const IncomingCallOverlay: React.FC<IncomingCallProps> = () => {
 
     // Subscribe to meeting_participants table for new invites
     const channel = supabase
-      .channel("incoming_calls")
+      .channel(`incoming_calls_${user.id}`)
       .on(
         "postgres_changes",
         {
@@ -117,15 +111,29 @@ const IncomingCallOverlay: React.FC<IncomingCallProps> = () => {
           filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log("Incoming call payload:", payload);
+          console.log("📞 Incoming call payload received:", payload);
           const newParticipant = payload.new;
           if (newParticipant.status === "invited") {
+            console.log(
+              "📞 Processing incoming call for participant:",
+              newParticipant.id
+            );
             await handleIncomingCall(newParticipant);
+          } else {
+            console.log(
+              "📞 Ignoring participant with status:",
+              newParticipant.status
+            );
           }
         }
       )
       .subscribe((status) => {
-        console.log("Incoming call subscription status:", status);
+        console.log("📞 Incoming call subscription status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Successfully subscribed to incoming calls");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("❌ Error subscribing to incoming calls");
+        }
       });
 
     return () => {

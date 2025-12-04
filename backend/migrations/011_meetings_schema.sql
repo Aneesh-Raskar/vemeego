@@ -41,12 +41,12 @@ CREATE TABLE IF NOT EXISTS meeting_chat_messages (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Add indexes
-CREATE INDEX idx_meetings_host_id ON meetings(host_id);
-CREATE INDEX idx_meetings_start_time ON meetings(start_time);
-CREATE INDEX idx_meeting_participants_meeting_id ON meeting_participants(meeting_id);
-CREATE INDEX idx_meeting_participants_user_id ON meeting_participants(user_id);
-CREATE INDEX idx_meeting_chat_messages_meeting_id ON meeting_chat_messages(meeting_id);
+-- Add indexes (with IF NOT EXISTS check)
+CREATE INDEX IF NOT EXISTS idx_meetings_host_id ON meetings(host_id);
+CREATE INDEX IF NOT EXISTS idx_meetings_start_time ON meetings(start_time);
+CREATE INDEX IF NOT EXISTS idx_meeting_participants_meeting_id ON meeting_participants(meeting_id);
+CREATE INDEX IF NOT EXISTS idx_meeting_participants_user_id ON meeting_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_meeting_chat_messages_meeting_id ON meeting_chat_messages(meeting_id);
 
 -- Enable RLS
 ALTER TABLE meetings ENABLE ROW LEVEL SECURITY;
@@ -54,6 +54,15 @@ ALTER TABLE meeting_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meeting_chat_messages ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for meetings
+
+-- Drop existing policies if they exist (for idempotency)
+DROP POLICY IF EXISTS "View meetings" ON meetings;
+DROP POLICY IF EXISTS "Manage meetings" ON meetings;
+DROP POLICY IF EXISTS "View participants" ON meeting_participants;
+DROP POLICY IF EXISTS "Host manage participants" ON meeting_participants;
+DROP POLICY IF EXISTS "Update own participant status" ON meeting_participants;
+DROP POLICY IF EXISTS "View chat messages" ON meeting_chat_messages;
+DROP POLICY IF EXISTS "Insert chat messages" ON meeting_chat_messages;
 
 -- Everyone can view open meetings or meetings they are invited to
 CREATE POLICY "View meetings" ON meetings
