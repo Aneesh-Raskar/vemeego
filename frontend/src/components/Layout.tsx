@@ -86,12 +86,7 @@ const Layout = ({ children, activeTab, onTabChange }: LayoutProps) => {
       {/* Mobile Header */}
       <div className="md:hidden absolute top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 flex items-center justify-between px-4 z-30">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Video size={18} className="text-white" />
-          </div>
-          <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-            Lumina
-          </span>
+          <img src="/logo.png" alt="Logo" className="w-8 h-8" />
         </div>
         <button
           onClick={toggleMobileMenu}
@@ -111,12 +106,7 @@ const Layout = ({ children, activeTab, onTabChange }: LayoutProps) => {
       >
         <div className="mt-16 md:mt-0">
           <div className="hidden md:flex items-center gap-2 mb-10 px-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Video size={18} className="text-white" />
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-              Lumina
-            </span>
+            <img src="/logo.png" alt="Logo" className="w-50 h-20" />
           </div>
 
           {/* Agent Mode Toggle */}

@@ -40,12 +40,7 @@ const LandingPage = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Video size={20} className="text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-              Lumina
-            </span>
+            <img src="/logo.png" alt="Logo" className="w-50 h-20" />
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
@@ -131,7 +126,7 @@ const LandingPage = () => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-600">think with you.</span>
             </h1>
             <p className="text-xl text-slate-500 leading-relaxed max-w-lg animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-              Experience the future of collaboration with Lumina. Crystal clear video, intelligent summaries, and an AI assistant that handles the busy work.
+              Experience the future of collaboration with Vemeego. Crystal clear video, intelligent summaries, and an AI assistant that handles the busy work.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
               <Link 
@@ -198,7 +193,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-20">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">More than just video calling</h2>
-            <p className="text-lg text-slate-500">Lumina is an intelligent workspace designed to make your meetings more productive, inclusive, and actionable.</p>
+            <p className="text-lg text-slate-500">Vemeego is an intelligent workspace designed to make your meetings more productive, inclusive, and actionable.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-12">
@@ -206,7 +201,7 @@ const LandingPage = () => {
               {
                 icon: Sparkles,
                 title: "AI-Powered Summaries",
-                desc: "Never take notes again. Lumina automatically transcribes and summarizes your meetings, highlighting key decisions and action items."
+                desc: "Never take notes again. Vemeego automatically transcribes and summarizes your meetings, highlighting key decisions and action items."
               },
               {
                 icon: Globe,
@@ -252,7 +247,7 @@ const LandingPage = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Built for every way you work</h2>
-              <p className="text-lg text-slate-500 mb-8">Whether you're running a daily standup, closing a sales deal, or hosting a company-wide all-hands, Lumina adapts to your needs.</p>
+              <p className="text-lg text-slate-500 mb-8">Whether you're running a daily standup, closing a sales deal, or hosting a company-wide all-hands, Vemeego adapts to your needs.</p>
               
               <div className="space-y-6">
                 {[
@@ -363,7 +358,7 @@ const LandingPage = () => {
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1664526937033-fe2c11f1be25')] bg-cover bg-center opacity-10" />
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to transform your meetings?</h2>
-          <p className="text-xl text-indigo-200 mb-10">Join thousands of teams who have switched to Lumina for a smarter, faster, and more collaborative experience.</p>
+          <p className="text-xl text-indigo-200 mb-10">Join thousands of teams who have switched to Vemeego for a smarter, faster, and more collaborative experience.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link 
               to="/signup" 
@@ -383,10 +378,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-16">
           <div className="col-span-2 lg:col-span-2">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center">
-                <Video size={16} className="text-white" />
-              </div>
-              <span className="text-xl font-bold text-slate-900">Lumina</span>
+              <img src="/logo.png" alt="Logo" className="w-50 h-20" />
             </div>
             <p className="text-slate-500 mb-6 max-w-xs">
               The AI-first video conferencing platform designed for the modern workforce. Connect, collaborate, and create together.
@@ -435,7 +427,7 @@ const LandingPage = () => {
         </div>
 
         <div className="max-w-7xl mx-auto pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-slate-400">© 2025 Lumina Inc. All rights reserved.</p>
+          <p className="text-sm text-slate-400">© 2025 Samsan Labs. All rights reserved.</p>
           <div className="flex gap-8 text-sm text-slate-500">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500" />

@@ -212,10 +212,7 @@ const CompleteOrganizationSetup = () => {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                <Video size={16} className="text-white" />
-              </div>
-              <span className="text-xl font-bold text-slate-900">Lumina</span>
+              <img src="/logo.png" alt="Logo" className="w-50 h-20" />
             </div>
             {user && (
               <div className="text-sm text-slate-600">

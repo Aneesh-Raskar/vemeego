@@ -109,7 +109,7 @@ const AgentView = () => {
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask Lumina..."
+              placeholder="Ask Vemee..."
               className="w-full pl-6 pr-24 md:pr-32 py-3 md:py-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 shadow-2xl text-sm md:text-base"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">

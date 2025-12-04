@@ -276,7 +276,7 @@ const UserDashboard = ({ activeTab }: UserDashboardProps) => {
           <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-xl shadow-indigo-500/20">
             <h3 className="text-lg font-bold mb-2">AI Assistant</h3>
             <p className="text-indigo-100 text-sm mb-4">
-              Prepare for your next meeting. Ask Lumina to summarize previous notes.
+              Prepare for your next meeting. Ask Vemeego to summarize previous notes.
             </p>
             <button className="w-full py-2.5 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 hover:bg-white/30 transition-colors text-sm font-medium">
               Open Assistant

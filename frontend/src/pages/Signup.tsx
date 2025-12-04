@@ -150,7 +150,7 @@ const Signup = () => {
             <Video size={32} className="text-white" />
           </div>
           <h2 className="text-4xl font-bold mb-6">
-            Start your journey with Lumina
+            Start your journey with Vemeego
           </h2>
           <p className="text-lg text-indigo-100 leading-relaxed mb-8">
             Join thousands of teams who have transformed their remote meetings
@@ -182,10 +182,7 @@ const Signup = () => {
               to="/"
               className="inline-flex items-center gap-2 mb-8 lg:hidden"
             >
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                <Video size={16} className="text-white" />
-              </div>
-              <span className="text-xl font-bold text-slate-900">Lumina</span>
+              <img src="/logo.png" alt="Logo" className="w-50 h-20" />
             </Link>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">
               Create your account
