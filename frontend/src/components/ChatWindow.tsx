@@ -14,6 +14,7 @@ import {
   Paperclip,
   File,
   Loader2,
+  Video,
 } from "lucide-react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -86,7 +87,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, uploading: isUploadingFile } = useFileUpload();
 
-  const channelName = conversationId ? `conversation:${conversationId}` : null;
+  const channelName = `conversation:${conversationId}`;
 
   const handleBroadcast = React.useCallback((event: string, payload: any) => {
     if (event === "message" && payload) {
@@ -285,6 +286,46 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         top: container.scrollHeight,
         behavior,
       });
+    }
+  };
+
+  const handleVideoCall = async () => {
+    if (!conversationId || !participant) return;
+
+    try {
+      // Create instant meeting
+      const response = await api.post(API_ENDPOINTS.MEETINGS.CREATE, {
+        title: `Call with ${participant.user_name}`,
+        start_time: new Date().toISOString(),
+        type: "instant",
+        participants: [
+          // Don't add participant here initially if we want to trigger the "invite" flow separately
+          // OR we can add them here and the backend should set status to 'invited' which triggers the hook?
+          // The backend create_meeting sets status to 'invited' for participants.
+          // So if we include them here, they should get the call.
+          { user_id: participant.id, role: "attendee" }
+        ]
+      });
+
+      const meeting = response.data;
+      const meetingLink = `${window.location.origin}/meeting/${meeting.id}`;
+
+      // Send meeting link as message
+      const messageData: any = {
+        conversation_id: conversationId,
+        content: `📞 Started a video call. [Join Meeting](${meetingLink})`,
+        content_type: "markdown",
+      };
+
+      await api.post(API_ENDPOINTS.MESSAGING.SEND_MESSAGE, messageData);
+      
+      // Navigate to meeting room
+      // window.open(meetingLink, '_blank'); // Optional: open in new tab
+      // For now, let the user click the link or we can navigate them
+      // navigate(`/meeting/${meeting.id}`); // Need useNavigate hook
+    } catch (error) {
+      console.error("Failed to start video call:", error);
+      alert("Failed to start video call");
     }
   };
 
@@ -515,6 +556,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
     );
   }
+  if (!conversationId || !participant) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-white/20">
+        <div className="text-center text-slate-500">
+          <p className="text-lg">Select a conversation to start messaging</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -548,9 +598,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </span>
           </div>
         </div>
-        <button className="p-2 hover:bg-slate-100 rounded-full text-slate-600">
-          <MoreVertical size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleVideoCall}
+            className="p-2 hover:bg-indigo-100 rounded-full text-indigo-600"
+            title="Start Video Call"
+          >
+            <Video size={20} />
+          </button>
+          <button className="p-2 hover:bg-slate-100 rounded-full text-slate-600">
+            <MoreVertical size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Messages */}

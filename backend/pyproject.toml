@@ -18,6 +18,8 @@ dependencies = [
     "alembic>=1.13.0",
     "email-validator>=2.1.0",
     "gotrue>=2.12.4",
+    "livekit-api>=1.1.0",
+    "livekit>=1.0.20",
 ]
 
 [project.optional-dependencies]

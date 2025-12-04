@@ -50,13 +50,23 @@ export const useRealtimeChannel = ({
   }, [onBroadcast, onPresenceSync, onPresenceJoin, onPresenceLeave]);
 
   useEffect(() => {
-    if (!channelName || !supabase) return;
+    if (!supabase) return;
+    if (!channelName) {
+      if (channelRef.current) {
+        console.log("Unsubscribing because channelName is null");
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+        setChannel(null);
+        setIsConnected(false);
+      }
+      return;
+    }
 
-    console.log('🔌 Setting up channel:', channelName); // Debug log
+    console.log('🔌 Setting up channel:', channelName); 
 
     // Cleanup previous channel if it exists
     if (channelRef.current) {
-      console.log('🧹 Cleaning up previous channel');
+      console.log('🧹 Cleaning up previous channel', channelRef.current.topic);
       channelRef.current.unsubscribe();
     }
 

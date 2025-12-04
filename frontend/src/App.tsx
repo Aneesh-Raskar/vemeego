@@ -10,6 +10,7 @@ import OrganizationSetup from "./pages/OrganizationSetup";
 import CompleteOrganizationSetup from "./pages/CompleteOrganizationSetup";
 import PendingApproval from "./pages/PendingApproval";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import IncomingCallOverlay from "./components/IncomingCallOverlay";
 
 // Simple Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -53,6 +54,7 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
+          <IncomingCallOverlay />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />

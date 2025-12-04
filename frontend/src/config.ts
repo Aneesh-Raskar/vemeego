@@ -35,6 +35,12 @@ export const API_ENDPOINTS = {
     UNPIN_MESSAGE: (conversationId: string, messageId: string) => `${API_BASE_URL}/messaging/conversations/${conversationId}/pin/${messageId}`,
     PINNED_MESSAGES: (conversationId: string) => `${API_BASE_URL}/messaging/conversations/${conversationId}/pinned`,
   },
+  MEETINGS: {
+    CREATE: `${API_BASE_URL}/meetings`,
+    LIST: `${API_BASE_URL}/meetings`,
+    DETAIL: (id: string) => `${API_BASE_URL}/meetings/${id}`,
+    TOKEN: (id: string) => `${API_BASE_URL}/meetings/${id}/token`,
+  },
 };
 
 // Supabase Configuration

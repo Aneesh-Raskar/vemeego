@@ -1,247 +1,254 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  LiveKitRoom,
+  VideoConference,
+  GridLayout,
+  ParticipantTile,
+  useTracks,
+  RoomAudioRenderer,
+  ControlBar,
+  useRoomContext,
+  TrackToggle,
+} from '@livekit/components-react';
+import '@livekit/components-styles';
+import { Track, RoomEvent } from 'livekit-client';
+import { api } from '../utils/api';
+import { API_ENDPOINTS } from '../config';
+import { Loader2, MessageSquare, PhoneOff } from 'lucide-react';
+import MeetingChat from '../components/MeetingChat';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Video, VideoOff, Monitor, PhoneOff, MessageSquare, Users, Sparkles, Send, X, ChevronRight, Menu, LucideIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { USERS, AI_COMMANDS, User, AICommand } from '../mockData';
+// Custom disconnect button that properly cleans up tracks
+const CustomDisconnectButton = ({ onDisconnect }: { onDisconnect: () => void }) => {
+  const room = useRoomContext();
 
-interface ControlButtonProps {
-  icon: LucideIcon;
-  active?: boolean;
-  onClick: () => void;
-  danger?: boolean;
-  label: string;
-  className?: string;
-}
+  const handleDisconnect = async () => {
+    try {
+      // Stop all local tracks before disconnecting
+      const localParticipant = room.localParticipant;
+      
+      // Unpublish all tracks
+      for (const publication of localParticipant.trackPublications.values()) {
+        if (publication.track) {
+          try {
+            await localParticipant.unpublishTrack(publication.track);
+          } catch (err) {
+            console.warn('Error unpublishing track:', err);
+          }
+        }
+      }
 
-const ControlButton = ({ icon: Icon, active, onClick, danger, label, className }: ControlButtonProps) => (
-  <button
-    onClick={onClick}
-    className={`relative group flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-300
-      ${danger 
-        ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30' 
-        : active 
-          ? 'bg-white text-slate-900 shadow-lg' 
-          : 'bg-slate-800/50 text-white hover:bg-slate-700/50 backdrop-blur-md'
-      } ${className}`}
-  >
-    <Icon size={20} />
-    <span className="hidden md:block absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-      {label}
-    </span>
-  </button>
-);
-
-interface AIAssistantPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-interface Message {
-  type: 'ai' | 'user';
-  text: string;
-}
-
-const AIAssistantPanel = ({ isOpen, onClose }: AIAssistantPanelProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    { type: 'ai', text: "Hi! I'm Lumina. I can help you manage this meeting. Try asking me to 'Summarize discussion' or 'Record meeting'." }
-  ]);
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Disconnect from room
+      await room.disconnect();
+      
+      // Navigate after disconnect
+      onDisconnect();
+    } catch (error) {
+      console.error('Error during disconnect:', error);
+      // Navigate anyway
+      onDisconnect();
+    }
   };
-
-  useEffect(scrollToBottom, [messages]);
-
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMsg: Message = { type: 'user', text: input };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setIsTyping(true);
-
-    // Simulate AI processing
-    setTimeout(() => {
-      const command = AI_COMMANDS.find(c =>
-        input.toLowerCase().includes(c.command.toLowerCase().split(' ')[0])
-      );
-
-      const responseText = command
-        ? command.response
-        : "I'm listening. I can help with summaries, action items, and meeting controls.";
-
-      setMessages(prev => [...prev, { type: 'ai', text: responseText }]);
-      setIsTyping(false);
-    }, 1500);
-  };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="absolute right-0 md:right-4 top-0 md:top-4 bottom-0 md:bottom-24 w-full md:w-80 bg-white/90 backdrop-blur-xl md:rounded-2xl shadow-2xl border-l md:border border-white/50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 z-50">
-      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50">
-        <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-indigo-600" />
-          <h3 className="font-semibold text-slate-800">Lumina AI</h3>
-        </div>
-        <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-          <X size={16} className="text-slate-500" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-              msg.type === 'user' 
-                ? 'bg-indigo-600 text-white rounded-tr-none' 
-                : 'bg-slate-100 text-slate-700 rounded-tl-none'
-            }`}>
-              <p className="whitespace-pre-line">{msg.text}</p>
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-slate-100 p-3 rounded-2xl rounded-tl-none flex gap-1">
-              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <form onSubmit={handleSend} className="p-4 border-t border-slate-100 bg-white/50">
-        <div className="relative">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Lumina..."
-            className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-100 border-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
-          <button 
-            type="submit"
-            disabled={!input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Send size={14} />
-          </button>
-        </div>
-      </form>
-    </div>
+    <button
+      onClick={handleDisconnect}
+      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
+    >
+      <PhoneOff size={20} />
+      Leave
+    </button>
   );
 };
 
 const MeetingRoom = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [micOn, setMicOn] = useState(true);
-  const [camOn, setCamOn] = useState(true);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [participants, setParticipants] = useState(USERS);
+  const [token, setToken] = useState<string>("");
+  const [meeting, setMeeting] = useState<any>(null);
+  const [error, setError] = useState<string>("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchMeetingAndToken = async () => {
+      if (!id) return;
+
+      try {
+        // Fetch meeting details
+        const meetingRes = await api.get(API_ENDPOINTS.MEETINGS.DETAIL(id));
+        setMeeting(meetingRes.data);
+
+        // Fetch token
+        const tokenRes = await api.post(API_ENDPOINTS.MEETINGS.TOKEN(id));
+        setToken(tokenRes.data.token);
+      } catch (err: any) {
+        console.error("Failed to join meeting:", err);
+        console.error("Error details:", err.response?.data);
+        setError(err.response?.data?.detail || "Failed to join meeting");
+      }
+    };
+
+    fetchMeetingAndToken();
+  }, [id]);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p className="text-slate-400 mb-4">{error}</p>
+          <button
+            onClick={() => navigate('/dashboard?tab=meetings')}
+            className="px-4 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700"
+          >
+            Back to Meetings
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!token || !meeting) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+          <p>Joining meeting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen w-full bg-slate-900 relative overflow-hidden flex flex-col">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 z-10 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white text-sm font-medium">
-            00:12:45
-          </div>
-          <h1 className="text-white font-medium text-lg drop-shadow-md hidden md:block">Q3 Product Roadmap Review</h1>
+    <LiveKitRoom
+      video={true}
+      audio={true}
+      token={token}
+      serverUrl={process.env.REACT_APP_LIVEKIT_URL}
+      data-lk-theme="default"
+      style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
+      onDisconnected={(reason) => {
+        console.log('Disconnected from room:', reason);
+        // Small delay to ensure cleanup completes
+        setTimeout(() => {
+          navigate('/dashboard?tab=meetings');
+        }, 100);
+      }}
+    >
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 relative">
+          <MyVideoConference meeting={meeting} />
+          <DebugListener />
         </div>
-        <div className="flex items-center gap-2">
-          <div className="px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-medium flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            Encrypted
+        
+        {isChatOpen && (
+          <div className="w-80 h-full border-l border-slate-700 bg-slate-900">
+            <MeetingChat meetingId={id!} onClose={() => setIsChatOpen(false)} />
           </div>
+        )}
+      </div>
+      
+      <RoomAudioRenderer />
+      
+      {/* Custom Control Bar */}
+      <div className="p-4 bg-slate-900 border-t border-slate-700 flex items-center justify-center gap-4">
+        <div className="flex items-center gap-2 bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+          <TrackToggle source={Track.Source.Microphone} showIcon={true} className="lk-button" />
+          <TrackToggle source={Track.Source.Camera} showIcon={true} className="lk-button" />
+          <TrackToggle source={Track.Source.ScreenShare} showIcon={true} className="lk-button" />
+          
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className={`lk-button ${isChatOpen ? 'lk-button-active' : ''}`}
+            title="Chat"
+          >
+            <MessageSquare size={20} />
+          </button>
+
+          <div className="w-px h-8 bg-slate-700 mx-2" />
+          
+          <CustomDisconnectButton 
+            onDisconnect={() => {
+              setTimeout(() => {
+                navigate('/dashboard?tab=meetings');
+              }, 100);
+            }}
+          />
         </div>
       </div>
-
-      {/* Video Grid */}
-      <div className="flex-1 p-4 pt-20 pb-24 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-7xl mx-auto w-full h-full overflow-y-auto">
-        {participants.map((user) => (
-          <div key={user.id} className="relative rounded-2xl overflow-hidden bg-slate-800 border border-white/10 shadow-2xl group min-h-[200px]">
-            <img 
-              src={user.avatar} 
-              alt={user.name} 
-              className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-            />
-            
-            {/* Overlay Info */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-2">
-              <div className="px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-md text-white text-sm font-medium flex items-center gap-2">
-                {user.isMuted ? <MicOff size={14} className="text-red-400" /> : <Mic size={14} className="text-green-400" />}
-                {user.name}
-              </div>
-            </div>
-
-            {/* Speaking Indicator */}
-            {user.isSpeaking && (
-              <div className="absolute inset-0 border-4 border-indigo-500/50 rounded-2xl pointer-events-none animate-pulse" />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* AI Panel */}
-      <AIAssistantPanel isOpen={aiOpen} onClose={() => setAiOpen(false)} />
-
-      {/* Bottom Controls */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 md:gap-4 px-4 md:px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl z-50 max-w-[95vw] overflow-x-auto">
-        <ControlButton 
-          icon={micOn ? Mic : MicOff} 
-          active={micOn} 
-          onClick={() => setMicOn(!micOn)} 
-          label={micOn ? "Mute" : "Unmute"}
-        />
-        <ControlButton 
-          icon={camOn ? Video : VideoOff} 
-          active={camOn} 
-          onClick={() => setCamOn(!camOn)} 
-          label={camOn ? "Stop Video" : "Start Video"}
-        />
-        <div className="w-px h-8 bg-white/20 mx-1 md:mx-2" />
-        <ControlButton 
-          icon={Monitor} 
-          onClick={() => {}} 
-          label="Share Screen"
-          className="hidden md:flex"
-        />
-        <ControlButton 
-          icon={Sparkles} 
-          active={aiOpen}
-          onClick={() => setAiOpen(!aiOpen)} 
-          label="AI Agent"
-          className="text-indigo-400"
-        />
-        <ControlButton 
-          icon={MessageSquare} 
-          onClick={() => {}} 
-          label="Chat"
-        />
-        <ControlButton 
-          icon={Users} 
-          onClick={() => {}} 
-          label="Participants"
-          className="hidden md:flex"
-        />
-        <div className="w-px h-8 bg-white/20 mx-1 md:mx-2" />
-        <ControlButton 
-          icon={PhoneOff} 
-          danger 
-          onClick={() => navigate('/')} 
-          label="Leave"
-        />
-      </div>
-    </div>
+    </LiveKitRoom>
   );
 };
+
+const DebugListener = () => {
+  const room = useRoomContext();
+  
+  useEffect(() => {
+    const handleData = (payload: Uint8Array, participant: any, kind: any, topic: any) => {
+      const str = new TextDecoder().decode(payload);
+      console.log('DEBUG LISTENER: Data received', { topic, kind, str });
+    };
+    
+    room.on(RoomEvent.DataReceived, handleData);
+    return () => {
+      room.off(RoomEvent.DataReceived, handleData);
+    };
+  }, [room]);
+  
+  return null;
+};
+
+function MyVideoConference({ meeting }: { meeting: any }) {
+  const tracks = useTracks(
+    [
+      { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.ScreenShare, withPlaceholder: false },
+    ],
+    { onlySubscribed: false },
+  );
+
+  // Wrap GridLayout in error boundary to catch LiveKit internal errors during disconnect
+  return (
+    <ErrorBoundary>
+      <GridLayout tracks={tracks} style={{ height: '100%' }}>
+        <ParticipantTile />
+      </GridLayout>
+    </ErrorBoundary>
+  );
+}
+
+// Simple error boundary to catch LiveKit layout errors during disconnect
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Only log if it's not the expected LiveKit disconnect error
+    if (!error.message.includes('Element not part of the array')) {
+      console.error('GridLayout error:', error, errorInfo);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // Return empty div during disconnect to prevent white screen
+      return <div style={{ height: '100%', backgroundColor: '#0f172a' }} />;
+    }
+
+    return this.props.children;
+  }
+}
 
 export default MeetingRoom;

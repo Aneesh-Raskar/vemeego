@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.exceptions import AppException
-from app.routers import auth, messaging, organizations, storage
+from app.routers import auth, messaging, organizations, storage, meetings
 
 
 @asynccontextmanager
@@ -149,6 +149,7 @@ app.include_router(organizations.router)
 # Include messaging router
 app.include_router(messaging.router)
 app.include_router(storage.router)
+app.include_router(meetings.router)
 
 
 # ============================================================================
