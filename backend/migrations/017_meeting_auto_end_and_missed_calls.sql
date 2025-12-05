@@ -11,3 +11,5 @@ CREATE INDEX IF NOT EXISTS idx_meetings_status ON meetings(status);
 -- Add index for meeting type queries  
 CREATE INDEX IF NOT EXISTS idx_meetings_type ON meetings(type);
 
+
+

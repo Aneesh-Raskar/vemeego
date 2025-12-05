@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   LiveKitRoom,
-  VideoConference,
-  GridLayout,
-  ParticipantTile,
-  useTracks,
   RoomAudioRenderer,
-  ControlBar,
   useRoomContext,
   TrackToggle,
 } from '@livekit/components-react';
@@ -17,6 +12,7 @@ import { api } from '../utils/api';
 import { API_ENDPOINTS } from '../config';
 import { Loader2, MessageSquare, PhoneOff } from 'lucide-react';
 import MeetingChat from '../components/MeetingChat';
+import { CustomVideoConference } from '../components/CustomVideoConference';
 
 // Custom disconnect button that properly cleans up tracks
 const CustomDisconnectButton = ({ meetingId, onDisconnect }: { meetingId: string; onDisconnect: () => void }) => {
@@ -185,14 +181,14 @@ const MeetingRoom = () => {
         }, 100);
       }}
     >
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 relative">
-          <MyVideoConference meeting={meeting} />
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className="flex-1 relative min-w-0 min-h-0">
+          <CustomVideoConference meeting={meeting} />
           <DebugListener />
         </div>
         
         {isChatOpen && (
-          <div className="w-80 h-full border-l border-slate-700 bg-slate-900">
+          <div className="w-80 h-full border-l border-slate-700 bg-slate-900 flex-shrink-0">
             <MeetingChat meetingId={id!} onClose={() => setIsChatOpen(false)} />
           </div>
         )}
@@ -249,54 +245,5 @@ const DebugListener = () => {
   return null;
 };
 
-function MyVideoConference({ meeting }: { meeting: any }) {
-  const tracks = useTracks(
-    [
-      { source: Track.Source.Camera, withPlaceholder: true },
-      { source: Track.Source.ScreenShare, withPlaceholder: false },
-    ],
-    { onlySubscribed: false },
-  );
-
-  // Wrap GridLayout in error boundary to catch LiveKit internal errors during disconnect
-  return (
-    <ErrorBoundary>
-      <GridLayout tracks={tracks} style={{ height: '100%' }}>
-        <ParticipantTile />
-      </GridLayout>
-    </ErrorBoundary>
-  );
-}
-
-// Simple error boundary to catch LiveKit layout errors during disconnect
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Only log if it's not the expected LiveKit disconnect error
-    if (!error.message.includes('Element not part of the array')) {
-      console.error('GridLayout error:', error, errorInfo);
-    }
-  }
-
-  render() {
-    if (this.state.hasError) {
-      // Return empty div during disconnect to prevent white screen
-      return <div style={{ height: '100%', backgroundColor: '#0f172a' }} />;
-    }
-
-    return this.props.children;
-  }
-}
 
 export default MeetingRoom;
