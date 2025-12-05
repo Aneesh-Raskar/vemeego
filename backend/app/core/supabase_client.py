@@ -78,6 +78,14 @@ def get_supabase_client() -> SupabaseClient:
     return SupabaseClient()
 
 
+def clear_supabase_client_cache():
+    """
+    Clear the cached Supabase client instance.
+    Useful when configuration changes or after schema updates.
+    """
+    get_supabase_client.cache_clear()
+
+
 def get_client() -> Client:
     """
     Get regular Supabase client (with anon key).

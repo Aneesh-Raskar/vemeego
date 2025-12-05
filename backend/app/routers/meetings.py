@@ -3,51 +3,25 @@ Meetings Router
 Handles meeting-related API endpoints.
 """
 
-from typing import List, Optional
+from typing import List
 from uuid import UUID
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
 
 from app.core.exceptions import AppException
 from app.middleware.auth import get_current_active_user
+from app.models.meeting import (
+    ChatMessageInput,
+    LiveKitTokenResponse,
+    MeetingCreate,
+    MeetingResponse,
+    ParticipantInput,
+    ParticipantStatusUpdate,
+)
 from app.services.meeting_service import MeetingService
 
 router = APIRouter(prefix="/meetings", tags=["Meetings"])
 meeting_service = MeetingService()
-
-class ParticipantInput(BaseModel):
-    user_id: Optional[UUID] = None
-    email: Optional[str] = None
-    name: Optional[str] = None
-    role: str = "attendee"
-
-class MeetingCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    start_time: datetime
-    end_time: Optional[datetime] = None
-    type: str = "scheduled"
-    is_open: bool = False
-    participants: List[ParticipantInput] = []
-
-class MeetingResponse(BaseModel):
-    id: UUID
-    title: str
-    description: Optional[str] = None
-    start_time: datetime
-    end_time: Optional[datetime] = None
-    status: str
-    type: str
-    is_open: bool
-    host_id: UUID
-    room_name: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-
-class TokenResponse(BaseModel):
-    token: str
 
 @router.post("", response_model=MeetingResponse, status_code=status.HTTP_201_CREATED)
 async def create_meeting(
@@ -115,7 +89,7 @@ async def get_meeting(
             detail=f"Failed to get meeting: {str(e)}",
         )
 
-@router.post("/{meeting_id}/token", response_model=TokenResponse)
+@router.post("/{meeting_id}/token", response_model=LiveKitTokenResponse)
 async def generate_token(
     meeting_id: UUID,
     current_user: dict = Depends(get_current_active_user),
@@ -161,9 +135,6 @@ async def invite_participant(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to invite participant: {str(e)}",
         )
-
-class ChatMessageInput(BaseModel):
-    content: str
 
 @router.post("/{meeting_id}/chat", status_code=status.HTTP_201_CREATED)
 async def send_chat_message(
@@ -275,8 +246,6 @@ async def get_participant_by_user(
             detail=f"Failed to get participant: {str(e)}",
         )
 
-class ParticipantStatusUpdate(BaseModel):
-    status: str  # "accepted" or "declined"
 
 @router.patch("/{meeting_id}/participants/{participant_id}/status", status_code=status.HTTP_200_OK)
 async def update_participant_status(

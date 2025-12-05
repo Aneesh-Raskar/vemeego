@@ -139,6 +139,33 @@ async def health_check():
     }
 
 
+@app.get("/health/db", tags=["Health"])
+async def database_health_check():
+    """Database health check - verifies Supabase connection and table access."""
+    try:
+        from app.core.supabase_client import get_admin_client
+        
+        admin_client = get_admin_client()
+        
+        # Test access to meetings table
+        response = admin_client.table("meetings").select("id").limit(1).execute()
+        
+        return {
+            "status": "healthy",
+            "supabase_url": settings.SUPABASE_URL,
+            "meetings_table": {
+                "accessible": True,
+                "row_count": len(response.data) if response.data else 0,
+            },
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "supabase_url": settings.SUPABASE_URL,
+        }
+
+
 # ============================================================================
 # Include Routers
 # ============================================================================
